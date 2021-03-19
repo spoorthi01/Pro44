@@ -1,0 +1,212 @@
+var ground, groundImg, invisibleGround, invisibleGround1,  girl, girlAnim, girlStanding;
+var dog1, dog1Img, dog2, dog2Img;
+var tree, treeImg1, treeImg2, cloudImg, mailboxImg;
+var treeGroup, cloudGroup, mailboxGroup;
+var gameState = 1;
+var score = 0;
+
+function preload(){
+  girlAnim = loadAnimation("Images/G1.png","Images/G2.png","Images/G3.png","Images/G4.png","Images/G5.png","Images/G6.png","Images/G7.png");
+
+  groundImg = loadImage("Images/ground 2.png");
+
+  dog1Img = loadAnimation("Images/P1.png","Images/P2.png","Images/P3.png","Images/P4.png","Images/P5.png","Images/P6.png","Images/P7.png","Images/P8.png","Images/P9.png","Images/P10.png");
+
+  dog2Img = loadAnimation("Images/2P1.png","Images/2P2.png","Images/2P3.png","Images/2P4.png","Images/2P5.png","Images/2P6.png","Images/2P7.png","Images/2P8.png","Images/2P9.png","Images/2P10.png");
+
+  treeImg1 = loadImage("images/T1.png");
+
+  treeImg2 = loadImage("images/T8.png");
+
+  cloudImg = loadImage("images/Cloud1.png");
+
+  mailboxImg = loadImage("images/Mail Box.png");
+  
+  girlStanding = loadAnimation("Images/G6.png")
+
+}
+
+function setup() {
+  createCanvas(displayWidth-20,displayHeight-110);
+  
+  ground = createSprite(width/2, height+280, width, 10);
+  ground.addImage("ground",groundImg);
+  ground.scale = 2.0;
+  ground.x = ground.width/2 - 700;
+  ground.velocityX = 6;
+  console.log(ground.width);
+  ground.debug = true;
+
+  invisibleGround = createSprite(width/2, height-5 , width, 5);
+  invisibleGround.visible = false;
+
+  invisibleGround1 = createSprite(width/2, height-10 , width, 5);
+  invisibleGround1.visible = false;
+  
+  girl = createSprite(width-100, height-30, 30, 30);
+  girl.addAnimation("girl",girlAnim);
+  girl.addAnimation("stand", girlStanding)
+  girl.scale = 2.5;
+  girl.setCollider("rectangle",0,0,30,100);
+
+
+  dog1 = createSprite(width/2, height-30, 30, 30);
+  dog1.addAnimation("dogImg", dog1Img);
+  dog1.scale = 1.5;
+
+  dog2 = createSprite(width/2 - 160, height-30, 30, 30);
+  dog2.addAnimation("dog2Img", dog2Img);
+  dog2.scale = 1.5;
+
+  treeGroup = new Group();
+
+  cloudGroup = new Group();
+
+  mailboxGroup = new Group();
+}
+
+function draw() {
+  background("#B6D3EF");  
+
+  if(gameState === 1){
+
+    ground.velocityX = 6;
+
+    if(ground.x > width){
+      ground.x = ground.width/2 - 700;
+    }
+
+    if(keyDown(UP_ARROW)){
+      girl.velocityY = -12;
+      girl.velocityX = -2;
+    }
+
+    //console.log(girl.y);
+
+    if(girl.y >= 375.5){
+      girl.velocityX = 0;
+      girl.x = width-100;
+    }
+
+    girl.velocityY = girl.velocityY+0.5;
+
+    spawnTrees();
+    spawnObstacles();
+
+    if(mailboxGroup.isTouching(girl)){
+      gameState = 0;
+    }
+  
+  }else{
+   
+    ground.velocityX = 0;
+    girl.velocityY = 0;
+    girl.velocityX = 0;
+
+    mailboxGroup.setVelocityXEach(0);
+    treeGroup.setVelocityXEach(0);
+    cloudGroup.setVelocityXEach(0);
+
+    // dog1.visible = false;
+    // dog2.visible = false;
+
+    dog1.velocityX = -2;
+    dog2.velocityX = -2;
+
+    girl.changeAnimation("stand", girlStanding);
+
+    mailboxGroup.setLifetimeEach(-1);
+  }
+
+  girl.collide(invisibleGround);
+  dog1.collide(invisibleGround);
+  dog2.collide(invisibleGround);
+
+  drawSprites();
+
+  textSize(20);
+  textFont("Georgia");
+  text("Score: "+score,50,70);
+}
+
+function spawnTrees(){
+  if(frameCount % 350 === 0){
+    tree = createSprite(-10,height-110,10,10);
+    
+    var rand = Math.round(random(1,2));
+
+    if(rand === 1){
+      tree.addImage("tree1", treeImg1);
+    }else{
+      tree.addImage("tree2", treeImg2);
+    }
+
+    tree.scale = 1.2;
+
+    tree.velocityX = 2; 
+
+    tree.lifetime = width/5; 
+
+    treeGroup.add(tree);
+
+    girl.depth = tree.depth;
+    girl.depth = girl.depth+1;
+
+    dog1.depth = tree.depth;
+    dog1.depth = dog1.depth+1;
+
+    dog2.depth = tree.depth;
+    dog2.depth = dog2.depth+1;
+
+  }
+
+  if(frameCount % 250 === 0){
+    var cloud = createSprite(-10,height-300,10,10)
+    cloud.addImage("cloud", cloudImg);
+
+    cloud.velocityX = 3; 
+
+    cloud.lifetime = width/3;
+
+    cloudGroup.add(cloud);
+  }
+}
+
+function spawnObstacles(){
+  var mailbox;
+  if(frameCount % 200 === 0){
+    mailbox = createSprite(0,height-50,10,10);
+    mailbox.addImage("mailbox", mailboxImg);
+    
+    mailbox.scale = 0.3;
+
+    mailbox.velocityX = 5;
+  
+    mailbox.lifetime = 500;
+  
+    mailboxGroup.add(mailbox);
+
+    girl.depth = mailbox.depth;
+    girl.depth = girl.depth+1;
+
+    dog1.depth = mailbox.depth;
+    dog1.depth = dog1.depth+1;
+
+    dog2.depth = mailbox.depth;
+    dog2.depth = dog2.depth+1;
+
+    console.log(mailbox.x);
+
+    if(mailbox.x > width){
+      score = score+100;
+    }
+
+    if(tree != undefined){
+      mailbox.depth = tree.depth;
+      mailbox.depth = mailbox.depth+1;
+    }
+  }
+  if(mailbox != undefined){
+    mailbox.x = mailbox.x+5;
+  } 
+}
